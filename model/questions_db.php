@@ -4,9 +4,8 @@ class QuestionDB {
         if ($email === "all") {
             $db = Database::getDB();
 
-            $query = "SELECT id, title, body, skills FROM questions";
+            $query = "SELECT owneremail, id, title, body, skills FROM questions";
             $statement = $db->prepare($query);
-            $statement->bindValue(":email", $email);
             $statement->execute();
             $returnedQuestions = $statement->fetchAll();
             $statement->closeCursor();
@@ -14,7 +13,7 @@ class QuestionDB {
         else {
             $db = Database::getDB();
 
-            $query = "SELECT id, title, body, skills FROM questions WHERE owneremail = :email";
+            $query = "SELECT owneremail, id, title, body, skills FROM questions WHERE owneremail = :email";
             $statement = $db->prepare($query);
             $statement->bindValue(":email", $email);
             $statement->execute();
@@ -26,6 +25,7 @@ class QuestionDB {
 
         foreach ($returnedQuestions as $question) {
             $question_obj = new Question($email);
+            $question_obj->setEmail($question["owneremail"]);
             $question_obj->setId($question["id"]);
             $question_obj->setTitle($question["title"]);
             $question_obj->setBody($question["body"]);
@@ -53,20 +53,36 @@ class QuestionDB {
     public static function getQuestion($questionId) {
         $db = Database::getDB();
 
-        $query = "SELECT id, title, body, skills FROM questions WHERE id = :questionId";
+        $query = "SELECT owneremail, id, title, body, skills FROM questions WHERE id = :questionId";
         $statement = $db->prepare($query);
         $statement->bindValue(":questionId", $questionId);
         $statement->execute();
         $returnedQuestion = $statement->fetch();
         $statement->closeCursor();
 
-        $email = $_SESSION['email'];
-
-        $question = new Question($email);
+        $question = new Question($returnedQuestion["owneremail"]);
         $question->setId($returnedQuestion["id"]);
         $question->setTitle($returnedQuestion["title"]);
         $question->setBody($returnedQuestion["body"]);
         $question->setSkills($returnedQuestion["skills"]);
+
+        $query = "SELECT id, answer, questionId FROM answers WHERE questionId = :questionId";
+        $statement = $db->prepare($query);
+        $statement->bindValue(":questionId", $questionId);
+        $statement->execute();
+        $returnedAnswers = $statement->fetchAll();
+        $statement->closeCursor();
+
+        $answers = new Answers($questionId);
+
+        foreach ($returnedAnswers as $answer) {
+            $answer_obj = new Answer($answer['id']);
+            $answer_obj->setAnswer($answer['answer']);
+
+            $answers->setAnswers($answer_obj);
+        }
+
+        $question->setAnswers($answers);
 
         return $question;
     }
@@ -94,10 +110,10 @@ class QuestionDB {
         $statement->closeCursor();
     }
 
-    public static function createAnswer($questionId, $answer) {
+    public static function newAnswer($answer, $questionId) {
         $db = Database::getDB();
 
-        $query = "INSERT INTO answers (answer) VALUES (:answer) WHERE id = :questionId";
+        $query = "INSERT INTO answers (answer, questionId) VALUES (:answer, :questionId)";
         $statement = $db->prepare($query);
         $statement->bindValue(":answer", $answer);
         $statement->bindValue(":questionId", $questionId);

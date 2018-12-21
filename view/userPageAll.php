@@ -14,6 +14,11 @@
                     <h2 class='questionHeading'>Title:&nbsp;</h2><p class='questionContent'><?php echo $question->getTitle(); ?></p><br>
                     <h2 class='questionHeading'>Body:&nbsp;</h2><p class='questionContent'><?php echo $question->getBody(); ?></p><br><br>
                     <?php $questionCounter++; ?>
+                    <form action="index.php" method="post">
+                        <input type="hidden" name="questionId" value="<?php echo $question->getId(); ?>">
+                        <input type="hidden" name="action" value="view_question">
+                        <input type="submit" value="View" class='formButton'>
+                    </form>
                 <?php endforeach; ?>
             </div>
         </div>

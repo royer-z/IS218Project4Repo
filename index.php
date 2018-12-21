@@ -6,6 +6,8 @@ require ("model/accounts.php");
 require ('model/accounts_db.php');
 require ("model/questions.php");
 require ('model/questions_db.php');
+require ("model/answers.php");
+require ("model/answers_db.php");
 
 $action = $_GET['action'];
 if ($action === NULL) {
@@ -160,6 +162,33 @@ elseif ($action === 'delete_question') {
 elseif ($action === 'logout') {
     session_destroy();
     include('view/loginForm.php');
+}
+elseif ($action === "view_question") {
+    if ($_SESSION["questionId"] === NULL) {
+        $questionId = $_POST["questionId"];
+    }
+    else {
+        $questionId = $_SESSION["questionId"];
+        $_SESSION["questionId"] = NULL;
+    }
+
+    $question = QuestionDB::getQuestion($questionId);
+
+    include ("view/question.php");
+}
+elseif ($action === "display_answer_form") {
+    $questionId = $_POST["questionId"];
+
+    include('view/answerForm.php');
+}
+elseif ($action === "post_answer") {
+    $questionId = $_POST["questionId"];
+    $answer = $_POST["answer"];
+
+    QuestionDB::newAnswer($answer, $questionId);
+
+    $_SESSION["questionId"] = $questionId;
+    header("Location: index.php?action=view_question");
 }
 
 function checkEmail($data) {

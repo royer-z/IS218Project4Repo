@@ -24,7 +24,7 @@ class Questions {
 }
 
 class Question {
-    private $email, $id, $title, $body, $skills, $answers = array();
+    private $email, $id, $title, $body, $skills, $answers;
 
     public function __construct($email) {
         $this->email = $email;
@@ -34,8 +34,8 @@ class Question {
         return $this->answers;
     }
 
-    public function newAnswer($value) {
-        array_push($this->answers, $value);
+    public function setAnswers($value) {
+        $this->answers = $value;
     }
 
     public function getEmail() {
